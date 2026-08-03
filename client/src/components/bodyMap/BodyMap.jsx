@@ -64,7 +64,6 @@ export default function BodyMap({ value = [], onChange }) {
             const common = {
               ...p,
               onClick: () => toggle(z.id),
-              key: z.id,
             };
             if (z.el === 'circle') return <circle key={z.id} {...common} cx={z.x} cy={z.y} r={z.r} />;
             return <rect key={z.id} {...common} x={z.x} y={z.y} width={z.w} height={z.h} rx={z.rx} />;

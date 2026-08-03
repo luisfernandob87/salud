@@ -86,9 +86,12 @@ export default function EntityForm({ open, type, initial, onClose, onSaved }) {
     if (!open) return;
     setError('');
     if (initial && initial.id) {
-      const copy = { ...initial };
-      copy.body_locations = copy.body_locations || [];
-      copy.tags = copy.tags || [];
+      const copy = { ...defaultValues(type), ...initial };
+      for (const k of Object.keys(copy)) {
+        if (copy[k] === null || copy[k] === undefined) copy[k] = '';
+      }
+      copy.body_locations = Array.isArray(copy.body_locations) ? copy.body_locations : [];
+      copy.tags = Array.isArray(copy.tags) ? copy.tags : [];
       if (copy.occurred_at) copy.occurred_at = toLocalDateTime(copy.occurred_at);
       setV(copy);
       setFiles(initial.files || []);
