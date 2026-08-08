@@ -18,11 +18,41 @@ function statusLabel(status) {
   return s ? s.label : status;
 }
 
+function rangeLabel(range) {
+  const diffDays = Math.round((new Date(range.date_to) - new Date(range.date_from)) / 86400000);
+  if (diffDays <= 31) return 'Últimos 30 días';
+  if (diffDays <= 100) return 'Últimos 3 meses';
+  if (diffDays <= 200) return 'Últimos 6 meses';
+  return 'Historial completo';
+}
+
 function rgb(color, alpha = 1) {
   return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
 }
 
-export function generateMedicalPdf({ user, items }) {
+const TYPE_LABELS = {
+  symptom: 'síntomas',
+  consultation: 'consultas',
+  medication: 'medicamentos',
+  study: 'estudios',
+  daily: 'salud diaria',
+  note: 'notas',
+};
+
+function typesText(types) {
+  if (!Array.isArray(types) || types.length === 0) return '';
+  return ` · Incluye: ${types.map((t) => TYPE_LABELS[t] || t).join(', ')}`;
+}
+
+export function generateMedicalPdf({ user, items: allItems, range, types }) {
+  const items = allItems.filter(
+    (i) => i.visible_in_pdf !== 0 && i.visible_in_pdf !== false && i.visible_in_pdf !== '0' && i.visible_in_pdf !== 'false'
+  );
+  const rangeText =
+    range && range.date_from && range.date_to
+      ? ` · ${rangeLabel(range)} (${formatDate(range.date_from)} – ${formatDate(range.date_to)})`
+      : '';
+  const typesNote = typesText(types);
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const W = 210;
   const M = 16;
@@ -48,25 +78,31 @@ export function generateMedicalPdf({ user, items }) {
   }
 
   function text(label, value, opts = {}) {
+    const valueStr = String(value ?? '—');
+    const lines = doc.splitTextToSize(valueStr, CW - 40);
+    const neededHeight = lines.length * 4 + 1.5;
+    ensureY(neededHeight);
+
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(...GRAY);
     doc.text(label, M, y);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...INK);
-    const valueStr = String(value ?? '—');
-    const lines = doc.splitTextToSize(valueStr, CW - 40);
     doc.text(lines, M + 40, y);
-    y += lines.length * 4 + 1.5;
+    y += neededHeight;
   }
 
   function paragraph(textStr, indent = 0) {
     const lines = doc.splitTextToSize(String(textStr ?? ''), CW - indent);
+    const neededHeight = lines.length * 4 + 1;
+    ensureY(neededHeight);
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...INK);
     doc.text(lines, M + indent, y);
-    y += lines.length * 4 + 1;
+    y += neededHeight;
   }
 
   // Header
@@ -82,7 +118,7 @@ export function generateMedicalPdf({ user, items }) {
   doc.setFontSize(11);
   doc.text('Resumen de historial de salud', M, 23);
   doc.setFontSize(9);
-  doc.text(`Generado el ${new Date().toLocaleDateString('es')} · Documento de solo lectura`, M, 29);
+  doc.text(`Generado el ${new Date().toLocaleDateString('es')} · Documento de solo lectura${rangeText}${typesNote}`, M, 29);
   y = 42;
 
   // Personal data
@@ -110,6 +146,12 @@ export function generateMedicalPdf({ user, items }) {
   if (active.length > 0) {
     sectionTitle('Medicamentos actuales');
     for (const m of active) {
+      const pLines = doc.splitTextToSize(`• ${m.name} — ${[m.dosage, m.frequency].filter(Boolean).join(' · ')}`, CW - 2).length;
+      const t1Lines = doc.splitTextToSize(String(m.prescribed_by || '—'), CW - 40).length;
+      const t2Lines = doc.splitTextToSize(String(m.start_date || '—'), CW - 40).length;
+      const blockHeight = (pLines * 4 + 1) + (t1Lines * 4 + 1.5) + (t2Lines * 4 + 1.5) + 1;
+      ensureY(blockHeight);
+
       paragraph(`• ${m.name} — ${[m.dosage, m.frequency].filter(Boolean).join(' · ')}`, 2);
       text('Indicado por', m.prescribed_by || '—');
       text('Inicio', m.start_date || '—');
@@ -123,7 +165,27 @@ export function generateMedicalPdf({ user, items }) {
   if (consults.length > 0) {
     sectionTitle('Consultas recientes');
     for (const c of consults) {
-      paragraph(`• [${c.date}] ${c.specialty || 'Consulta'}${c.doctor ? ` · ${c.doctor}` : ''}`, 2);
+      let blockHeight = 0;
+      const titleText = `• [${c.date}] ${c.specialty || 'Consulta'}${c.doctor ? ` · ${c.doctor}` : ''}`;
+      const titleLines = doc.splitTextToSize(titleText, CW - 2).length;
+      blockHeight += titleLines * 4 + 1;
+
+      if (c.reason) {
+        const reasonLines = doc.splitTextToSize(`   Motivo: ${c.reason}`, CW - 4).length;
+        blockHeight += reasonLines * 4 + 1;
+      }
+      if (c.diagnosis) {
+        const diagLines = doc.splitTextToSize(`   Diagnóstico: ${c.diagnosis}`, CW - 4).length;
+        blockHeight += diagLines * 4 + 1;
+      }
+      if (c.treatment) {
+        const treatLines = doc.splitTextToSize(`   Tratamiento: ${c.treatment}`, CW - 4).length;
+        blockHeight += treatLines * 4 + 1;
+      }
+      blockHeight += 1; // for y += 1
+      ensureY(blockHeight);
+
+      paragraph(titleText, 2);
       if (c.reason) paragraph(`   Motivo: ${c.reason}`, 4);
       if (c.diagnosis) paragraph(`   Diagnóstico: ${c.diagnosis}`, 4);
       if (c.treatment) paragraph(`   Tratamiento: ${c.treatment}`, 4);
@@ -169,7 +231,20 @@ export function generateMedicalPdf({ user, items }) {
       default:
         break;
     }
-    paragraph(`• [${date}] ${title}`, 2);
+
+    let blockHeight = 0;
+    const titleText = `• [${date}] ${title}`;
+    const titleLines = doc.splitTextToSize(titleText, CW - 2).length;
+    blockHeight += titleLines * 4 + 1;
+
+    if (detail) {
+      const detailText = `   ${detail}`;
+      const detailLines = doc.splitTextToSize(detailText, CW - 4).length;
+      blockHeight += detailLines * 4 + 1;
+    }
+    ensureY(blockHeight);
+
+    paragraph(titleText, 2);
     if (detail) paragraph(`   ${detail}`, 4);
   }
 
@@ -213,18 +288,16 @@ export function generateMedicalPdf({ user, items }) {
       for (let g = 1; g < 3; g += 1) {
         doc.line(cx, cy + (ch / 3) * g, cx + chartW, cy + (ch / 3) * g);
       }
-      doc.setStrokeColor(...s.color);
+      doc.setDrawColor(...s.color);
       doc.setLineWidth(1.2);
       const step = chartW / Math.max(1, data.length - 1);
       const pts = data.map((d, i) => ({
         x: cx + i * step,
         y: cy + ch - ((d[s.key] - min) / span) * (ch - 4) - 2,
       }));
-      doc.lines(
-        pts.map((p) => [p.x - pts[0].x, p.y - pts[0].y]).slice(1),
-        pts[0].x,
-        pts[0].y
-      );
+      for (let p = 0; p < pts.length - 1; p += 1) {
+        doc.line(pts[p].x, pts[p].y, pts[p + 1].x, pts[p + 1].y);
+      }
       doc.setLineWidth(0.3);
       doc.setDrawColor(...GRAY, 0.3);
       pts.forEach((p) => {

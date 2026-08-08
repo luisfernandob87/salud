@@ -5,9 +5,29 @@ import { api, friendlyError } from '../api/client';
 import { useUi } from '../stores/ui';
 import EventCard from '../components/timeline/EventCard';
 import { generateMedicalPdf } from '../components/pdf/generatePdf';
-import { formatDate, initials } from '../utils/format';
-import { APP_NAME } from '../utils/app';
+import { formatDate, initials } from '../utils/format';import { APP_NAME } from '../utils/app';
 import { ENTITY_META } from '../utils/entities';
+
+function rangeDescription(range) {
+  if (!range || !range.date_from || !range.date_to) return 'Historial completo';
+  const diffDays = Math.round((new Date(range.date_to) - new Date(range.date_from)) / 86400000);
+  const label = diffDays <= 31 ? 'últimos 30 días' : diffDays <= 100 ? 'últimos 3 meses' : diffDays <= 200 ? 'últimos 6 meses' : 'historial completo';
+  return `${label} · del ${formatDate(range.date_from)} al ${formatDate(range.date_to)}`;
+}
+
+const TYPE_LABELS = {
+  symptom: 'Síntomas',
+  consultation: 'Consultas',
+  medication: 'Medicamentos',
+  study: 'Estudios',
+  daily: 'Salud diaria',
+  note: 'Notas',
+};
+
+function typesDescription(types) {
+  if (!Array.isArray(types) || types.length === 0) return 'Todos los tipos de registros';
+  return `Incluye: ${types.map((t) => TYPE_LABELS[t] || t).join(', ')}`;
+}
 
 export default function SharedView() {
   const { token } = useParams();
@@ -113,6 +133,8 @@ export default function SharedView() {
   }
 
   const { user, items } = data;
+  const rangeText = rangeDescription(data.range);
+  const typesText = typesDescription(data.types);
   const groups = [];
   const map = new Map();
   for (const item of items) {
@@ -137,6 +159,7 @@ export default function SharedView() {
                 {APP_NAME} · {user?.birth_date ? `Nacimiento: ${formatDate(user.birth_date)}` : 'Historial de salud'}
                 {user?.blood_type ? ` · Sangre: ${user.blood_type}` : ''}
               </p>
+              <p className="text-xs text-white/70 mt-0.5">{rangeText} · {typesText}</p>
             </div>
           </div>
           <button onClick={downloadPdf} className="inline-flex items-center gap-2 rounded-xl bg-white text-primary-700 px-4 py-2.5 text-sm font-semibold hover:bg-primary-50 shadow-soft">

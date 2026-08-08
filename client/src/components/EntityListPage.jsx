@@ -51,6 +51,7 @@ export default function EntityListPage({ type, title, subtitle, endpoint, emptyT
       )}
 
       <EntityForm
+        key={formOpen ? (editing ? `${type}-${editing.id}` : `new-${type}`) : 'closed'}
         open={formOpen}
         type={type}
         initial={editing}

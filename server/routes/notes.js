@@ -4,5 +4,5 @@ module.exports = makeCrudRouter({
   table: 'notes',
   type: 'note',
   orderField: 'date',
-  allowedFields: ['date', 'title', 'content', 'tags'],
+  allowedFields: ['date', 'title', 'content', 'tags', 'visible_in_pdf'],
 });

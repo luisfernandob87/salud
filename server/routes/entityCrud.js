@@ -6,6 +6,7 @@ const JSON_FIELDS = new Set(['body_locations', 'tags']);
 
 function normalizeValue(value) {
   if (value === undefined || value === null) return null;
+  if (typeof value === 'boolean') return value ? 1 : 0;
   return String(value).trim() === '' ? null : value;
 }
 

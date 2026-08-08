@@ -4,10 +4,12 @@ const { attachFiles } = require('../services/fileService');
 
 const router = express.Router();
 
-const FIELDS = ['date', 'mood', 'sleep_hours', 'activity', 'weight_kg', 'bp_sys', 'bp_dia', 'glucose', 'temperature', 'heart_rate', 'spo2', 'notes'];
+const FIELDS = ['date', 'mood', 'sleep_hours', 'activity', 'weight_kg', 'bp_sys', 'bp_dia', 'glucose', 'temperature', 'heart_rate', 'spo2', 'notes', 'visible_in_pdf'];
 
 function normalize(v) {
-  return v === undefined || v === null || String(v).trim() === '' ? null : v;
+  if (v === undefined || v === null) return null;
+  if (typeof v === 'boolean') return v ? 1 : 0;
+  return String(v).trim() === '' ? null : v;
 }
 
 function parseRow(row) {

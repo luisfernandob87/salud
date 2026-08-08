@@ -55,7 +55,7 @@ export default function HealthCharts({ items }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {weight.length > 1 && (
+      {weight.length > 0 && (
         <ChartCard title="Peso" unit="kg">
           <ResponsiveContainer>
             <AreaChart data={weight} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -69,7 +69,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {bp.length > 1 && (
+      {bp.length > 0 && (
         <ChartCard title="Presión arterial" unit="mmHg">
           <ResponsiveContainer>
             <LineChart data={bp} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -83,7 +83,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {glucose.length > 1 && (
+      {glucose.length > 0 && (
         <ChartCard title="Glucosa" unit="mg/dL">
           <ResponsiveContainer>
             <LineChart data={glucose} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -97,7 +97,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {temperature.length > 1 && (
+      {temperature.length > 0 && (
         <ChartCard title="Temperatura" unit="°C">
           <ResponsiveContainer>
             <LineChart data={temperature} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -111,7 +111,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {heartRate.length > 1 && (
+      {heartRate.length > 0 && (
         <ChartCard title="Frecuencia cardíaca" unit="lpm">
           <ResponsiveContainer>
             <LineChart data={heartRate} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -125,7 +125,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {spo2.length > 1 && (
+      {spo2.length > 0 && (
         <ChartCard title="Saturación de oxígeno" unit="%">
           <ResponsiveContainer>
             <LineChart data={spo2} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -139,7 +139,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {sleep.length > 1 && (
+      {sleep.length > 0 && (
         <ChartCard title="Horas de sueño" unit="horas">
           <ResponsiveContainer>
             <BarChart data={sleep} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -153,7 +153,7 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {mood.length > 1 && (
+      {mood.length > 0 && (
         <ChartCard title="Estado de ánimo" unit="1-5">
           <ResponsiveContainer>
             <LineChart data={mood} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>

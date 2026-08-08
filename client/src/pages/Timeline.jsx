@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { History, CalendarDays, Loader2 } from 'lucide-react';
 import { api, friendlyError } from '../api/client';
 import { useUi } from '../stores/ui';
@@ -15,6 +16,7 @@ const FILTERS = [
 
 export default function Timeline() {
   const { refreshKey, toast, setQuickAddOpen } = useUi();
+  const navigate = useNavigate();
   const [items, setItems] = useState(null);
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
@@ -52,6 +54,10 @@ export default function Timeline() {
   }
 
   function openEdit(item) {
+    if (item.type === 'daily') {
+      navigate('/health', { state: { date: item.date || new Date().toISOString().slice(0, 10) } });
+      return;
+    }
     setEditingType(item.type);
     setEditing(item);
   }
@@ -107,6 +113,7 @@ export default function Timeline() {
       )}
 
       <EntityForm
+        key={editing ? `${editing.type}-${editing.id}` : 'none'}
         open={Boolean(editing)}
         type={editingType}
         initial={editing}

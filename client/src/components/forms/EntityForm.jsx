@@ -31,15 +31,15 @@ function today() {
 function defaultValues(type) {
   switch (type) {
     case 'symptom':
-      return { occurred_at: toLocalDateTime(new Date().toISOString()), body_locations: [], intensity: null, kind: '', duration: '', causes: '', activity: '', relief: '', notes: '', tags: [] };
+      return { occurred_at: toLocalDateTime(new Date().toISOString()), body_locations: [], intensity: null, kind: '', duration: '', causes: '', activity: '', relief: '', notes: '', tags: [], visible_in_pdf: true };
     case 'consultation':
-      return { date: today(), specialty: '', doctor: '', place: '', reason: '', diagnosis: '', treatment: '', recommendations: '', next_appointment: '', notes: '', tags: [] };
+      return { date: today(), specialty: '', doctor: '', place: '', reason: '', diagnosis: '', treatment: '', recommendations: '', next_appointment: '', notes: '', tags: [], visible_in_pdf: true };
     case 'medication':
-      return { name: '', dosage: '', frequency: '', start_date: today(), end_date: '', prescribed_by: '', status: 'active', reminder_at: '', notes: '', tags: [] };
+      return { name: '', dosage: '', frequency: '', start_date: today(), end_date: '', prescribed_by: '', status: 'active', reminder_at: '', notes: '', tags: [], visible_in_pdf: true };
     case 'study':
-      return { date: today(), category: '', description: '', observations: '', tags: [] };
+      return { date: today(), category: '', description: '', observations: '', tags: [], visible_in_pdf: true };
     case 'note':
-      return { date: today(), title: '', content: '', tags: [] };
+      return { date: today(), title: '', content: '', tags: [], visible_in_pdf: true };
     default:
       return {};
   }
@@ -55,7 +55,8 @@ function Field({ label, children, className }) {
 }
 
 function TagsInput({ value, onChange }) {
-  const text = value.join(', ');
+  const tags = Array.isArray(value) ? value : [];
+  const text = tags.join(', ');
   return (
     <input
       className="input"
@@ -92,6 +93,7 @@ export default function EntityForm({ open, type, initial, onClose, onSaved }) {
       }
       copy.body_locations = Array.isArray(copy.body_locations) ? copy.body_locations : [];
       copy.tags = Array.isArray(copy.tags) ? copy.tags : [];
+      copy.visible_in_pdf = Boolean(copy.visible_in_pdf);
       if (copy.occurred_at) copy.occurred_at = toLocalDateTime(copy.occurred_at);
       setV(copy);
       setFiles(initial.files || []);
@@ -357,6 +359,19 @@ export default function EntityForm({ open, type, initial, onClose, onSaved }) {
             </Field>
           </>
         )}
+
+        <label className="flex items-start gap-2.5 rounded-xl border border-ink-200 bg-ink-50 p-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 accent-primary-500"
+            checked={Boolean(v.visible_in_pdf)}
+            onChange={(e) => set('visible_in_pdf', e.target.checked)}
+          />
+          <span>
+            <span className="block text-sm font-medium text-ink-800">Visible en PDF médico</span>
+            <span className="block text-xs text-ink-500">Este registro aparecerá en el PDF médico. Desmárcalo para ocultarlo.</span>
+          </span>
+        </label>
 
         <Field label="Etiquetas">
           <TagsInput value={v.tags} onChange={(val) => set('tags', val)} />

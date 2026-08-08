@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Loader2, HeartPulse, Save } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -29,12 +30,14 @@ const EMPTY = {
   heart_rate: '',
   spo2: '',
   notes: '',
+  visible_in_pdf: true,
 };
 
 export default function Health() {
   const { refreshKey, toast, bumpRefresh } = useUi();
+  const location = useLocation();
   const [all, setAll] = useState(null);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(location.state?.date || new Date().toISOString().slice(0, 10));
   const [v, setV] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
 
@@ -65,6 +68,7 @@ export default function Health() {
         heart_rate: current.heart_rate ?? '',
         spo2: current.spo2 ?? '',
         notes: current.notes ?? '',
+        visible_in_pdf: current.visible_in_pdf !== 0 && current.visible_in_pdf !== false && current.visible_in_pdf !== '0' && current.visible_in_pdf !== 'false',
       });
     } else {
       setV(EMPTY);
@@ -89,6 +93,20 @@ export default function Health() {
     }
   }
 
+  async function remove() {
+    if (!window.confirm('¿Eliminar este registro de salud diaria? Esta acción no se puede deshacer.')) return;
+    setLoading(true);
+    try {
+      await api.del(`/api/daily/${date}`);
+      toast('Registro eliminado.', 'success');
+      bumpRefresh();
+    } catch (err) {
+      toast(friendlyError(err), 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   if (!all) {
     return (
       <div className="flex justify-center py-24">
@@ -97,7 +115,9 @@ export default function Health() {
     );
   }
 
-  const filledCount = Object.values(v).filter((x) => x !== '' && x !== null && x !== undefined).length;
+  const filledCount = Object.entries(v)
+    .filter(([k, x]) => k !== 'visible_in_pdf')
+    .filter(([, x]) => x !== '' && x !== null && x !== undefined).length;
   const hasAny = all.length > 0;
 
   return (
@@ -182,10 +202,28 @@ export default function Health() {
                 <textarea className="input min-h-[60px]" value={v.notes} onChange={(e) => set('notes', e.target.value)} />
               </Field>
 
+              <label className="flex items-start gap-2.5 rounded-xl border border-ink-200 bg-ink-50 p-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 accent-primary-500"
+                  checked={Boolean(v.visible_in_pdf)}
+                  onChange={(e) => set('visible_in_pdf', e.target.checked)}
+                />
+                <span>
+                  <span className="block text-sm font-medium text-ink-800">Visible en PDF médico</span>
+                  <span className="block text-xs text-ink-500">Este registro aparecerá en el PDF médico. Desmárcalo para ocultarlo.</span>
+                </span>
+              </label>
+
               <button type="submit" disabled={loading || filledCount === 0} className="btn-primary w-full">
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 Guardar registro
               </button>
+              {current && (
+                <button type="button" onClick={remove} disabled={loading} className="btn-danger w-full">
+                  Eliminar registro del {format(new Date(date + 'T00:00:00'), "d 'de' MMMM", { locale: es })}
+                </button>
+              )}
             </form>
           </div>
         </div>

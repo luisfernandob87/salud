@@ -19,22 +19,22 @@ function nowLocal() {
 }
 
 const EMPTY = {
-  symptom: { occurred_at: nowLocal(), body_locations: [], intensity: null, kind: '', notes: '' },
-  medication: { name: '', dosage: '', frequency: '', start_date: today() },
-  consultation: { date: today(), doctor: '', specialty: '', reason: '' },
-  study: { date: today(), category: '', description: '' },
-  note: { date: today(), title: '', content: '' },
-  weight: { weight_kg: '' },
-  pressure: { bp_sys: '', bp_dia: '' },
-  glucose: { glucose: '' },
-  temperature: { temperature: '' },
+  symptom: { occurred_at: nowLocal(), body_locations: [], intensity: null, kind: '', notes: '', visible_in_pdf: true },
+  medication: { name: '', dosage: '', frequency: '', start_date: today(), visible_in_pdf: true },
+  consultation: { date: today(), doctor: '', specialty: '', reason: '', visible_in_pdf: true },
+  study: { date: today(), category: '', description: '', visible_in_pdf: true },
+  note: { date: today(), title: '', content: '', visible_in_pdf: true },
+  weight: { weight_kg: '', visible_in_pdf: true },
+  pressure: { bp_sys: '', bp_dia: '', visible_in_pdf: true },
+  glucose: { glucose: '', visible_in_pdf: true },
+  temperature: { temperature: '', visible_in_pdf: true },
 };
 
 const VITALS_MAP = {
-  weight: { url: '/api/daily', payload: (v) => ({ date: today(), weight_kg: v.weight_kg }) },
-  pressure: { url: '/api/daily', payload: (v) => ({ date: today(), bp_sys: v.bp_sys, bp_dia: v.bp_dia }) },
-  glucose: { url: '/api/daily', payload: (v) => ({ date: today(), glucose: v.glucose }) },
-  temperature: { url: '/api/daily', payload: (v) => ({ date: today(), temperature: v.temperature }) },
+  weight: { url: '/api/daily', payload: (v) => ({ date: today(), weight_kg: v.weight_kg, visible_in_pdf: v.visible_in_pdf }) },
+  pressure: { url: '/api/daily', payload: (v) => ({ date: today(), bp_sys: v.bp_sys, bp_dia: v.bp_dia, visible_in_pdf: v.visible_in_pdf }) },
+  glucose: { url: '/api/daily', payload: (v) => ({ date: today(), glucose: v.glucose, visible_in_pdf: v.visible_in_pdf }) },
+  temperature: { url: '/api/daily', payload: (v) => ({ date: today(), temperature: v.temperature, visible_in_pdf: v.visible_in_pdf }) },
 };
 
 const URLS = {
@@ -290,6 +290,19 @@ export default function QuickAdd({ open }) {
               <input type="number" step="0.1" className="input" autoFocus value={v.temperature} onChange={(e) => setV({ ...v, temperature: e.target.value })} placeholder="36.6" />
             </Field>
           )}
+
+          <label className="flex items-start gap-2.5 rounded-xl border border-ink-200 bg-ink-50 p-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-primary-500"
+              checked={Boolean(v.visible_in_pdf)}
+              onChange={(e) => setV({ ...v, visible_in_pdf: e.target.checked })}
+            />
+            <span>
+              <span className="block text-sm font-medium text-ink-800">Visible en PDF médico</span>
+              <span className="block text-xs text-ink-500">Este registro aparecerá en el PDF médico. Desmárcalo para ocultarlo.</span>
+            </span>
+          </label>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 

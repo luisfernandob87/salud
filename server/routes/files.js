@@ -46,13 +46,13 @@ function userIdFromToken(token) {
 function resolveAccess(req) {
   if (req.cookies && req.cookies.token) {
     const id = userIdFromToken(req.cookies.token);
-    if (id) return id;
+    if (id) return { id, link: null };
   }
   if (req.query.token) {
     const link = db.prepare('SELECT * FROM share_links WHERE token = ?').get(req.query.token);
     if (link) {
       if (link.expires_at && new Date(link.expires_at) < new Date()) return null;
-      return link.user_id;
+      return { id: link.user_id, link };
     }
   }
   return null;
@@ -86,9 +86,19 @@ router.post('/', requireAuth, resolveProfile, upload.single('file'), (req, res) 
 router.get('/:id', (req, res) => {
   const row = db.prepare('SELECT * FROM files WHERE id = ?').get(req.params.id);
   if (!row) return res.status(404).json({ error: 'Archivo no encontrado.' });
-  const accessUserId = resolveAccess(req);
-  if (!accessUserId || (accessUserId !== row.user_id && !isGuardianOf(accessUserId, row.user_id))) {
+  const access = resolveAccess(req);
+  if (!access || (access.id !== row.user_id && !isGuardianOf(access.id, row.user_id))) {
     return res.status(403).json({ error: 'Sin acceso.' });
+  }
+  if (access.link) {
+    try {
+      const allowed = access.link.types ? JSON.parse(access.link.types) : null;
+      if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(row.entity_type)) {
+        return res.status(403).json({ error: 'Sin acceso.' });
+      }
+    } catch (err) {
+      return res.status(403).json({ error: 'Sin acceso.' });
+    }
   }
 
   const p = filePath(row.stored_name);

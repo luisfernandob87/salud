@@ -27,6 +27,7 @@ const MIGRATIONS = [
     relief TEXT,
     notes TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_symptoms_user_date ON symptoms(user_id, occurred_at);
@@ -46,6 +47,7 @@ const MIGRATIONS = [
     next_appointment TEXT,
     notes TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_consultations_user_date ON consultations(user_id, date);
@@ -64,6 +66,7 @@ const MIGRATIONS = [
     reminder_at TEXT,
     notes TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_medications_user ON medications(user_id);
@@ -77,6 +80,7 @@ const MIGRATIONS = [
     description TEXT,
     observations TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_studies_user_date ON studies(user_id, date);
@@ -97,6 +101,7 @@ const MIGRATIONS = [
     heart_rate INTEGER,
     spo2 INTEGER,
     notes TEXT,
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(user_id, date)
@@ -125,6 +130,7 @@ const MIGRATIONS = [
     title TEXT,
     content TEXT,
     tags TEXT NOT NULL DEFAULT '[]',
+    visible_in_pdf INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_notes_user_date ON notes(user_id, date);
@@ -169,6 +175,15 @@ function runMigrations(db) {
     ensureColumn(db, 'users', 'is_dependent', 'INTEGER NOT NULL DEFAULT 0');
     ensureColumn(db, 'users', 'family_code', 'TEXT');
     ensureColumn(db, 'users', 'claim_code', 'TEXT');
+    ensureColumn(db, 'symptoms', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'consultations', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'medications', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'studies', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'daily_health', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'notes', 'visible_in_pdf', 'INTEGER NOT NULL DEFAULT 1');
+    ensureColumn(db, 'share_links', 'date_from', 'TEXT');
+    ensureColumn(db, 'share_links', 'date_to', 'TEXT');
+    ensureColumn(db, 'share_links', 'types', 'TEXT');
     db.exec('COMMIT');
   } catch (err) {
     db.exec('ROLLBACK');
