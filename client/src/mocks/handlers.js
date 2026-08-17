@@ -10,7 +10,17 @@ const medications = [...MOCK_MEDICATIONS];
 const studies = [...MOCK_STUDIES];
 const notes = [...MOCK_NOTES];
 const dailyRecords = generateDailyRecords();
-const shareLinks = [...MOCK_SHARE_LINKS];
+const SHARE_STORAGE_KEY = 'salud_demo_share_links';
+const shareLinks = (() => {
+  try {
+    const stored = localStorage.getItem(SHARE_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return [...MOCK_SHARE_LINKS];
+})();
+function persistShareLinks() {
+  try { localStorage.setItem(SHARE_STORAGE_KEY, JSON.stringify(shareLinks)); } catch {}
+}
 const files = [];
 let profiles = [...MOCK_PROFILES];
 let user = { ...MOCK_USER };
@@ -197,7 +207,7 @@ export function mockGet(url) {
     if (link.expires_at && new Date(link.expires_at) < new Date()) throw Object.assign(new Error('Enlace expirado'), { status: 403 });
     const types = parseJson(link.types);
     const items = allTimelineItems().filter((i) => types.length === 0 || types.includes(i.type));
-    return { user: { name: user.name, birth_date: user.birth_date, blood_type: user.blood_type }, items, range: { date_from: link.date_from, date_to: link.date_to }, types };
+    return { data: { user: { name: user.name, birth_date: user.birth_date, blood_type: user.blood_type }, items, range: { date_from: link.date_from, date_to: link.date_to }, types } };
   }
   if (pathname === '/api/user/profile') {
     return { user };
@@ -283,6 +293,7 @@ export function mockPost(url, body) {
       types: body.types ? JSON.stringify(body.types) : null,
     };
     shareLinks.unshift(link);
+    persistShareLinks();
     return { item: link };
   }
 
@@ -376,6 +387,7 @@ export function mockDel(url) {
   if (shareparams) {
     const idx = shareLinks.findIndex((l) => l.id === Number(shareparams.id));
     if (idx >= 0) shareLinks.splice(idx, 1);
+    persistShareLinks();
     return { ok: true };
   }
 
