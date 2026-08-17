@@ -8,6 +8,8 @@ import { useUi } from '../stores/ui';
 import HealthCharts from '../components/charts/HealthCharts';
 import { MOODS } from '../utils/entities';
 import EmptyState from '../components/ui/EmptyState';
+import DateRangeFilter from '../components/ui/DateRangeFilter';
+import { useDateFilter } from '../hooks/useDateFilter';
 
 function Field({ label, children }) {
   return (
@@ -40,6 +42,7 @@ export default function Health() {
   const [date, setDate] = useState(location.state?.date || new Date().toISOString().slice(0, 10));
   const [v, setV] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
+  const { range, setRange, filterItems, ranges } = useDateFilter();
 
   useEffect(() => {
     let active = true;
@@ -53,6 +56,7 @@ export default function Health() {
   }, [refreshKey, toast]);
 
   const current = useMemo(() => (all || []).find((d) => d.date === date), [all, date]);
+  const filteredAll = useMemo(() => filterItems(all || []), [all, filterItems]);
 
   useEffect(() => {
     if (current) {
@@ -236,7 +240,16 @@ export default function Health() {
               description="Registra tu primer día: ánimo, peso, presión… y empieza a ver tus gráficas."
             />
           ) : (
-            <HealthCharts items={all} />
+            <>
+              <div className="card p-4">
+                <DateRangeFilter ranges={ranges} value={range} onChange={setRange} />
+              </div>
+              {filteredAll.length === 0 ? (
+                <EmptyState title="Sin resultados" description="No hay registros en este rango de tiempo." />
+              ) : (
+                <HealthCharts items={filteredAll} />
+              )}
+            </>
           )}
         </div>
       </div>

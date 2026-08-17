@@ -16,6 +16,7 @@ const RANGE_OPTIONS = [
   { value: '30d', label: 'Últimos 30 días' },
   { value: '3m', label: '3 meses atrás' },
   { value: '6m', label: '6 meses atrás' },
+  { value: '1y', label: '1 año atrás' },
   { value: 'all', label: 'Historial completo' },
 ];
 
@@ -36,6 +37,7 @@ function rangeLabel(link) {
   if (diffDays <= 31) return 'Últimos 30 días';
   if (diffDays <= 100) return '3 meses atrás';
   if (diffDays <= 200) return '6 meses atrás';
+  if (diffDays <= 400) return '1 año atrás';
   return 'Historial completo';
 }
 
@@ -168,7 +170,7 @@ export default function Share() {
             <p className="text-xs text-ink-400 mt-1.5">
               {range === 'all'
                 ? 'Compartirás todo el historial, tal como está.'
-                : `Solo se compartirán los registros de ${range === '30d' ? 'los últimos 30 días' : range === '3m' ? 'los últimos 3 meses' : 'los últimos 6 meses'} hasta hoy.`}
+                : `Solo se compartirán los registros de ${range === '30d' ? 'los últimos 30 días' : range === '3m' ? 'los últimos 3 meses' : range === '6m' ? 'los últimos 6 meses' : 'el último año'} hasta hoy.`}
             </p>
           </div>
 

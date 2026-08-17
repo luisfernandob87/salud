@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { api, friendlyError } from '../api/client';
 import { useUi } from '../stores/ui';
 import EventCard from './timeline/EventCard';
 import EntityForm from './forms/EntityForm';
 import EmptyState from './ui/EmptyState';
+import DateRangeFilter from './ui/DateRangeFilter';
+import { useDateFilter } from '../hooks/useDateFilter';
 
 export default function EntityListPage({ type, title, subtitle, endpoint, emptyTitle, emptyDescription }) {
   const { refreshKey, toast } = useUi();
   const [items, setItems] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { range, setRange, filterItems, ranges } = useDateFilter();
 
   useEffect(() => {
     let active = true;
@@ -22,6 +25,8 @@ export default function EntityListPage({ type, title, subtitle, endpoint, emptyT
       active = false;
     };
   }, [endpoint, refreshKey, toast]);
+
+  const filtered = useMemo(() => filterItems(items), [items, filterItems]);
 
   return (
     <div>
@@ -43,11 +48,20 @@ export default function EntityListPage({ type, title, subtitle, endpoint, emptyT
       ) : items.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} actionLabel="Registrar" onAction={() => setFormOpen(true)} />
       ) : (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <EventCard key={`${item.type}-${item.id}`} item={item} onEdit={(i) => { setEditing(i); setFormOpen(true); }} />
-          ))}
-        </div>
+        <>
+          <div className="mb-4">
+            <DateRangeFilter ranges={ranges} value={range} onChange={setRange} />
+          </div>
+          {filtered.length === 0 ? (
+            <EmptyState title="Sin resultados" description="No hay registros en este rango de tiempo." />
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((item) => (
+                <EventCard key={`${item.type}-${item.id}`} item={item} onEdit={(i) => { setEditing(i); setFormOpen(true); }} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <EntityForm

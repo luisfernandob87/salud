@@ -6,6 +6,8 @@ import { useUi } from '../stores/ui';
 import EventCard from '../components/timeline/EventCard';
 import EntityForm from '../components/forms/EntityForm';
 import EmptyState from '../components/ui/EmptyState';
+import DateRangeFilter from '../components/ui/DateRangeFilter';
+import { useDateFilter } from '../hooks/useDateFilter';
 import { formatDate } from '../utils/format';
 import { ENTITY_META } from '../utils/entities';
 
@@ -21,6 +23,7 @@ export default function Timeline() {
   const [filter, setFilter] = useState('all');
   const [editing, setEditing] = useState(null);
   const [editingType, setEditingType] = useState('symptom');
+  const { range, setRange, filterItems, ranges } = useDateFilter();
 
   useEffect(() => {
     let active = true;
@@ -35,7 +38,8 @@ export default function Timeline() {
 
   const groups = useMemo(() => {
     if (!items) return [];
-    const filtered = filter === 'all' ? items : items.filter((i) => i.type === filter);
+    const dateFiltered = filterItems(items);
+    const filtered = filter === 'all' ? dateFiltered : dateFiltered.filter((i) => i.type === filter);
     const map = new Map();
     for (const item of filtered) {
       const key = item.date || '';
@@ -43,7 +47,7 @@ export default function Timeline() {
       map.get(key).push(item);
     }
     return [...map.entries()].sort((a, b) => (a[0] > b[0] ? -1 : a[0] < b[0] ? 1 : 0));
-  }, [items, filter]);
+  }, [items, filter, filterItems]);
 
   if (!items) {
     return (
@@ -71,18 +75,21 @@ export default function Timeline() {
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar mb-5">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`chip border shrink-0 px-3 py-1.5 ${
-              filter === f.value ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-ink-600 border-ink-200 hover:border-primary-300'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <DateRangeFilter ranges={ranges} value={range} onChange={setRange} />
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={`chip border shrink-0 px-3 py-1.5 ${
+                filter === f.value ? 'bg-primary-500 text-white border-primary-500' : 'bg-white text-ink-600 border-ink-200 hover:border-primary-300'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {groups.length === 0 ? (
