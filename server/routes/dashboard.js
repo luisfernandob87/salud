@@ -44,12 +44,22 @@ router.get('/', (req, res) => {
     .prepare('SELECT * FROM files WHERE user_id = ? ORDER BY created_at DESC LIMIT 8')
     .all(uid);
 
+  const hasData =
+    latestSymptoms.length > 0 ||
+    nextAppointments.length > 0 ||
+    activeMedications.length > 0 ||
+    latestDaily.length > 0 ||
+    latestFiles.length > 0;
+
+  const hasAnyRecord = hasData || db.prepare('SELECT 1 FROM notes WHERE user_id = ? LIMIT 1').get(uid);
+
   const summary = {
     latestSymptoms: attachFiles(latestSymptoms),
     nextAppointments: attachFiles(nextAppointments),
     activeMedications: attachFiles(activeMedications),
     latestDaily,
     latestFiles,
+    hasData: Boolean(hasAnyRecord),
   };
 
   res.json({ summary });

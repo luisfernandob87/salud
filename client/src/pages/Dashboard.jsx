@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import {
   Loader2,
   Activity,
@@ -23,7 +23,7 @@ import { greeting, firstName, formatDate } from '../utils/format';
 import { MOODS } from '../utils/entities';
 import EventCard from '../components/timeline/EventCard';
 
-function MetricCard({ icon: Icon, label, value, color }) {
+const MetricCard = memo(function MetricCard({ icon: Icon, label, value, color }) {
   return (
     <div className="card p-4 flex items-center gap-3">
       <div className={`w-11 h-11 rounded-2xl ${color} flex items-center justify-center shrink-0`}>
@@ -35,7 +35,7 @@ function MetricCard({ icon: Icon, label, value, color }) {
       </div>
     </div>
   );
-}
+});
 
 export default function Dashboard() {
   const { refreshKey, toast, setQuickAddOpen } = useUi();
@@ -44,49 +44,6 @@ export default function Dashboard() {
   const { user, profiles, activeProfile } = useAuth();
   const activeName = activeProfile ? (profiles.find((p) => p.id === activeProfile)?.name || user?.name) : user?.name;
   const [hideClaimBanner, setHideClaimBanner] = useState(() => localStorage.getItem('salud_hide_claim_banner') === '1');
-  const [hasData, setHasData] = useState(false);
-  const [checkStatus, setCheckStatus] = useState('checking');
-
-  // Verificar si el usuario tiene cualquier registro médico para decidir mostrar el aviso de reclamación
-  async function checkUserData() {
-    try {
-      const targetProfile = activeProfile || user?.id;
-      let hasAnyData = false;
-      
-      const checks = [
-        api.get('/api/symptoms'),
-        api.get('/api/consultations'),
-        api.get('/api/medications'),
-        api.get('/api/studies'),
-        api.get('/api/daily'),
-        api.get('/api/notes'),
-      ];
-      
-      const results = await Promise.allSettled(checks);
-      results.forEach(result => {
-        if (result.status === 'fulfilled' && result.value?.items?.length > 0) {
-          hasAnyData = true;
-        }
-      });
-      
-      setHasData(hasAnyData);
-      setCheckStatus('checked');
-    } catch (err) {
-      console.error('Error verificando datos del usuario:', err);
-      setCheckStatus('error');
-    }
-  }
-
-  useEffect(() => {
-    if (user) {
-      checkUserData();
-    }
-  }, [user]);
-
-  function dismissClaimBanner() {
-    localStorage.setItem('salud_hide_claim_banner', '1');
-    setHideClaimBanner(true);
-  }
 
   useEffect(() => {
     let active = true;
@@ -98,6 +55,11 @@ export default function Dashboard() {
       active = false;
     };
   }, [refreshKey, toast]);
+
+  function dismissClaimBanner() {
+    localStorage.setItem('salud_hide_claim_banner', '1');
+    setHideClaimBanner(true);
+  }
 
   if (!summary) {
     return (
@@ -135,7 +97,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {!activeProfile && !hideClaimBanner && hasData === false && checkStatus === 'checked' && (
+      {!activeProfile && !hideClaimBanner && summary.hasData === false && (
         <div className="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3 border-primary-200 bg-gradient-to-r from-primary-50 to-mint-50">
           <div className="w-10 h-10 rounded-2xl bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
             <KeyRound size={19} />

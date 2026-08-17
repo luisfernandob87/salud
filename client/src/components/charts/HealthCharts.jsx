@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -44,21 +45,23 @@ function toChartData(items, getter) {
 export default function HealthCharts({ items }) {
   const data = items || [];
 
-  const weight = toChartData(data, (d) => d.weight_kg);
-  const bp = toChartData(data, (d) => d.bp_sys);
-  const glucose = toChartData(data, (d) => d.glucose);
-  const temperature = toChartData(data, (d) => d.temperature);
-  const heartRate = toChartData(data, (d) => d.heart_rate);
-  const spo2 = toChartData(data, (d) => d.spo2);
-  const sleep = toChartData(data, (d) => d.sleep_hours);
-  const mood = toChartData(data, (d) => d.mood);
+  const charts = useMemo(() => ({
+    weight: toChartData(data, (d) => d.weight_kg),
+    bp: toChartData(data, (d) => d.bp_sys),
+    glucose: toChartData(data, (d) => d.glucose),
+    temperature: toChartData(data, (d) => d.temperature),
+    heartRate: toChartData(data, (d) => d.heart_rate),
+    spo2: toChartData(data, (d) => d.spo2),
+    sleep: toChartData(data, (d) => d.sleep_hours),
+    mood: toChartData(data, (d) => d.mood),
+  }), [data]);
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {weight.length > 0 && (
+      {charts.weight.length > 0 && (
         <ChartCard title="Peso" unit="kg">
           <ResponsiveContainer>
-            <AreaChart data={weight} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <AreaChart data={charts.weight} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} domain={['auto', 'auto']} />
@@ -69,10 +72,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {bp.length > 0 && (
+      {charts.bp.length > 0 && (
         <ChartCard title="Presión arterial" unit="mmHg">
           <ResponsiveContainer>
-            <LineChart data={bp} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.bp} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} />
@@ -83,10 +86,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {glucose.length > 0 && (
+      {charts.glucose.length > 0 && (
         <ChartCard title="Glucosa" unit="mg/dL">
           <ResponsiveContainer>
-            <LineChart data={glucose} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.glucose} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} />
@@ -97,10 +100,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {temperature.length > 0 && (
+      {charts.temperature.length > 0 && (
         <ChartCard title="Temperatura" unit="°C">
           <ResponsiveContainer>
-            <LineChart data={temperature} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.temperature} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} domain={['dataMin - 0.3', 'dataMax + 0.3']} />
@@ -111,10 +114,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {heartRate.length > 0 && (
+      {charts.heartRate.length > 0 && (
         <ChartCard title="Frecuencia cardíaca" unit="lpm">
           <ResponsiveContainer>
-            <LineChart data={heartRate} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.heartRate} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} />
@@ -125,10 +128,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {spo2.length > 0 && (
+      {charts.spo2.length > 0 && (
         <ChartCard title="Saturación de oxígeno" unit="%">
           <ResponsiveContainer>
-            <LineChart data={spo2} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.spo2} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} domain={[85, 100]} />
@@ -139,10 +142,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {sleep.length > 0 && (
+      {charts.sleep.length > 0 && (
         <ChartCard title="Horas de sueño" unit="horas">
           <ResponsiveContainer>
-            <BarChart data={sleep} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <BarChart data={charts.sleep} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} />
@@ -153,10 +156,10 @@ export default function HealthCharts({ items }) {
         </ChartCard>
       )}
 
-      {mood.length > 0 && (
+      {charts.mood.length > 0 && (
         <ChartCard title="Estado de ánimo" unit="1-5">
           <ResponsiveContainer>
-            <LineChart data={mood} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <LineChart data={charts.mood} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="date" {...AXIS} />
               <YAxis {...AXIS} domain={[0, 5]} tickCount={6} />

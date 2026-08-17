@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pencil, Trash2, FileText, Download, MapPin } from 'lucide-react';
 import { ENTITY_META, SYMPTOM_KINDS, MED_STATUS, MOODS, bodyPartLabel } from '../../utils/entities';
 import { fileUrl } from '../../api/client';
@@ -91,7 +92,7 @@ function Row({ label, value }) {
   );
 }
 
-export default function EventCard({ item, token, password, onEdit, onDelete }) {
+export default memo(function EventCard({ item, token, password, onEdit, onDelete }) {
   const meta = ENTITY_META[item.type] || ENTITY_META.note;
   const Icon = meta.icon;
   const tags = Array.isArray(item.tags) ? item.tags : [];
@@ -217,4 +218,4 @@ export default function EventCard({ item, token, password, onEdit, onDelete }) {
       <FileGallery files={item.files} token={token} password={password} />
     </div>
   );
-}
+});

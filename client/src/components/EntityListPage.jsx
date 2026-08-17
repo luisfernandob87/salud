@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, memo } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { api, friendlyError } from '../api/client';
 import { useUi } from '../stores/ui';
@@ -8,7 +8,7 @@ import EmptyState from './ui/EmptyState';
 import DateRangeFilter from './ui/DateRangeFilter';
 import { useDateFilter } from '../hooks/useDateFilter';
 
-export default function EntityListPage({ type, title, subtitle, endpoint, emptyTitle, emptyDescription }) {
+export default memo(function EntityListPage({ type, title, subtitle, endpoint, emptyTitle, emptyDescription }) {
   const { refreshKey, toast } = useUi();
   const [items, setItems] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -76,4 +76,4 @@ export default function EntityListPage({ type, title, subtitle, endpoint, emptyT
       />
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -29,8 +30,8 @@ const NAV = [
   { to: '/settings', label: 'Configuración', icon: Settings },
 ];
 
-export default function Sidebar() {
-  const { user } = useAuth();
+export default memo(function Sidebar() {
+  const user = useAuth((s) => s.user);
   return (
     <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-white border-r border-ink-100 z-40">
       <div className="flex items-center gap-2.5 px-6 h-16 border-b border-ink-100">
@@ -72,4 +73,4 @@ export default function Sidebar() {
       </div>
     </aside>
   );
-}
+});

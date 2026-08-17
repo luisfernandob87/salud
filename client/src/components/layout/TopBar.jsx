@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Share2, LogOut, Activity, Users, ChevronRight, BadgeCheck } from 'lucide-react';
 import { APP_NAME } from '../../utils/app';
@@ -12,9 +13,14 @@ function relationLabel(p) {
   return age === null ? relation : `${relation} · ${age} años`;
 }
 
-export default function TopBar({ onOpenSearch }) {
-  const { user, profiles, activeProfile, setProfile, logout } = useAuth();
-  const { toast, bumpRefresh } = useUi();
+export default memo(function TopBar({ onOpenSearch }) {
+  const user = useAuth((s) => s.user);
+  const profiles = useAuth((s) => s.profiles);
+  const activeProfile = useAuth((s) => s.activeProfile);
+  const setProfile = useAuth((s) => s.setProfile);
+  const logout = useAuth((s) => s.logout);
+  const toast = useUi((s) => s.toast);
+  const bumpRefresh = useUi((s) => s.bumpRefresh);
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef(null);
@@ -162,4 +168,4 @@ export default function TopBar({ onOpenSearch }) {
       </div>
     </header>
   );
-}
+});

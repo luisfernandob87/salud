@@ -9,8 +9,9 @@ import { useUi } from '../../stores/ui';
 import { useAuth } from '../../stores/auth';
 
 export default function AppShell() {
-  const { quickAddOpen } = useUi();
-  const { familyLoaded, fetchFamily } = useAuth();
+  const quickAddOpen = useUi((s) => s.quickAddOpen);
+  const familyLoaded = useAuth((s) => s.familyLoaded);
+  const fetchFamily = useAuth((s) => s.fetchFamily);
   const navigate = useNavigate();
 
   function openSearch() {
