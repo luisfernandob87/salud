@@ -7,8 +7,17 @@ import '@fontsource/inter/700.css';
 import './index.css';
 import App from './App';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+async function bootstrap() {
+  if (import.meta.env.VITE_DEMO === 'true') {
+    const { setupMocks } = await import('./mocks/index.js');
+    setupMocks();
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
+
+bootstrap();

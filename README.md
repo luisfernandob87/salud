@@ -54,6 +54,33 @@ También puedes lanzarlos por separado: `npm run dev:server` y `npm run dev:clie
 
 ---
 
+## Modo Demo (sin backend)
+
+Puedes ejecutar el frontend de forma independiente, con datos demo y CRUD funcional en memoria (los cambios persisten hasta refrescar la página).
+
+### Local
+
+```bash
+cd client
+npm install
+npm run demo
+```
+
+Se abre en http://localhost:5173 con datos de "María García López" pre-cargados.
+
+### Desplegar en Netlify
+
+1. Sube el repo a GitHub (la carpeta `server/` está excluida en `.gitignore`)
+2. Conecta el repo a [Netlify](https://app.netlify.com)
+3. Configuración:
+   - **Build command**: `cd client && npm install && npm run demo:build`
+   - **Publish directory**: `client/dist`
+4. ¡Listo! Netlify despliega automáticamente en cada push a `main`
+
+El `netlify.toml` ya configura el redirect SPA y el build.
+
+---
+
 ## Configurar el inicio de sesión con Google (opcional pero recomendado)
 
 1. Ve a [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
@@ -104,6 +131,7 @@ server/                 Backend Express + SQLite
   uploads/              Archivos subidos (gitignored)
 client/                 Frontend React (Vite)
   src/api/              Cliente HTTP (cookies httpOnly)
+  src/mocks/            Mock API (modo demo, datos en memoria)
   src/components/       UI, layout, timeline, bodyMap, charts, pdf…
   src/pages/            Vistas (Dashboard, Timeline, Salud, …)
 ```
